@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta name="viewport" content="width=device-width, initial-scale=1.0"> 
+    <meta charset="UTF-8">
+    <title>Bouncing Ball </title>
+    <link rel="stylesheet" href="stylesheet.css">
+     <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjs/9.3.2/math.js"></script> 
+    
+</head>
+<body onload="startGame()">
+	 <script src="script.js"></script> 
+	 <script src="neural2.js"></script> 
+	 <p> </p>
+	<span class="score" id="yourscore">Red score: 0</span> 
+	&emsp;
+	<span class="score" id="itsscore">Purple score: 0</span>
+	&emsp;
+	  
+	  
+	 <button onclick="showExplanation()" id="pausebtn">So how does it work?</button>
+	 <div class='explanation' id='exp'>
+	 	<br>
+	 You control the red block with the arrow keys. You need to catch the green block, which moves around randomly. The tiny purple block will try to catch you. It starts out pretty dumb, but will become a worthy opponent in a minute or so.
+	 <br>
+	  
+	So how does it work? The purple dot acts on five pieces of information: Its own position, its own speed, your position relative to it, your speed relative to it and the position of the green block relative to it. Each of the five pieces have an x and a y component. It multiplies each of the five x-components with a number and sum them to get its acclereration along the x-direction and likewise for its acceleration along the y-direction. Its maximal acceleration is slightly less than the red blocks'. The five numbers needed to calculate where to go is called its weights. They start as small, totally random numbers. Thus, in the beginning the purple dot is prone to just getting stuck in a corner doing nothing.
+	  <br>
+	So how does it learn? It uses a simple evolutionary algorithm. Actually there are twelve purple dots, you can just only see one of them. The others all have slightly different parameters and are moving around unseen. When one of them gets good at catching you, its parameters are copied to the visible one. If one of them does badly at getting close to you, it will be erased and a new mutant will be cloned from the most successful one. At regular intervals, they will all be cloned from which ever is closest to you.
+	<br>
+
+	The entire thing is running in your browser, you can check the Javascript to see the algorhitm.
+	</div>
+
+	<div class="valuebar" id="values">
+
+		Here be values
+	</div>
+
+
+</body>
+</html>
