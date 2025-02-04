@@ -10,7 +10,8 @@ var Fx=0;   //tryk i x-retningen controlled by arrows
 var Fy=0;   //tryk i y-retning, husk ned er positiv
 var patience=0.95;   //the chance a random does not change direction
 
-var step=0.00001; //size of random steps during machine learning
+//var step=0.00001; //size of random steps during machine learning
+var step=0.0001;
 var caught=0; //to be briefly made 1 if the swarm catches their target
 var penaltymean=0;      //the mean of the penalties
 
@@ -247,7 +248,7 @@ function UpdateGameArea(){
             
         penaltymean=0;
         for (var i = bluearmy.length - 1; i >= 0; i--) {
-                bluearmy[i].penalty=(bluearmy[i].x-greenblock.x)**2+(bluearmy[i].y-greenblock.y)**2;
+                bluearmy[i].penalty=(bluearmy[i].x-redblock.x)**2+(bluearmy[i].y-redblock.y)**2;
                 //penalties equals distance squared at the time they are caught.
                 penaltymean+=bluearmy[i].penalty;       //to calculate the mean distance squared
         }
@@ -345,6 +346,11 @@ function UpdateGameArea(){
 
     if(n>100){
         n=0;
+        if (step>0.000001){
+            step=step*0.99; //Decrease step
+        }else{
+            step=step*0.999; //Decrease slower
+        }
         dmin=(bluearmy[0].x-redblock.x)**2+(bluearmy[0].y-redblock.y)**2;
         dindex=0;
          for (var i=bluearmy.length -1; i>0; i--){
@@ -382,8 +388,9 @@ function setWeightstring(){
     for (var i =0; i< 5;  i++) {
         weightstring = weightstring + "<br>"+weightarray[i]+math.floor((bluearmy[0].weight1.get([i])*1000000));
     }
-    document.getElementById('values').innerHTML=weightstring;
-
+    document.getElementById('values').innerHTML=weightstring+"<br>";
+    stepstring="Step Size: <br> "+(step*1000000);
+    document.getElementById('stepsize').innerHTML=stepstring;
 }
 
 function showExplanation(){
