@@ -32,6 +32,10 @@ var itcaught=0;
 var paused=0;       //can become one when paused
 var bar1width=0.5
 
+var simple=0;  //can become one when set to simple system
+var simpleWeights=[0,0,10,0,0];
+var weightholder=[0,0,0,0,0]; //For keeping weights in when not using them
+
 
 document.addEventListener("keydown",pressdown);
 document.addEventListener("keyup",letgo);
@@ -198,9 +202,33 @@ function component(width, height, color, x, y,vx,vy,player) {
 
 function UpdateGameArea(){
 
+    
+    if(simple==1){
+        simple=2;
+        for(var i=0; i<weightholder.length; i++){
+            weightholder[i]=bluearmy[0].weight1.get([i]); //save current weights
+        }
+        for (var i = bluearmy.length - 1; i >= 0; i--) {
+            for (var j=0; j<weightholder.length; j++){
+                bluearmy[i].weight1.set([j],simpleWeights[j]); //only go straight for red, max speed
+            }
+        }
+        setWeightstring();
+    }else if(simple==-1){
+        simple=0;
+        for (var i = bluearmy.length - 1; i >= 0; i--) {
+            for (var j=0; j<weightholder.length; j++){
+                bluearmy[i].weight1.set([j],weightholder[j]); //reset old weights
+            }
+        }
+        setWeightstring();
+
+    }
+
     if(paused==1){
         return;
     }
+
     myGameArea.clear();
     redblock.move();
     redblock.update();
@@ -269,7 +297,7 @@ function UpdateGameArea(){
 
             for (var i=bluearmy.length -1; i>=0; i--){  //NB, not counting nr 0
 
-                if(n>30){
+                if(n>30 && simple==0){
                 
 
                 if (bluearmy[i].penalty<penaltymean) {
@@ -344,7 +372,7 @@ function UpdateGameArea(){
 
     n+=1;
 
-    if(n>100){
+    if(n>100 && simple==0){
         n=0;
         if (step>0.000001){
             step=step*0.99; //Decrease step
@@ -405,8 +433,17 @@ function showExplanation(){
         paused=0;
         document.getElementById('pausebtn').innerHTML="So how does it work?";
     }
-
 }
+function makeSimple(){
+    if(simple==0){
+        simple=1; //switch to simple mode
+        document.getElementById("makeSimplebtn").innerHTML="Back to learning mode";
+    }else{
+        simple=-1; //need to switch to normal mode
+        document.getElementById("makeSimplebtn").innerHTML="Try instinctual mode";
+    }
+}
+
 
 
 
