@@ -66,8 +66,7 @@ function neural_component(width, height, color, x, y,vx,vy) {
         this.inlayerx.set([4],(target2.x-this.x)/fullwidth*10);
         this.inlayery.set([4],(target2.y-this.y)/fullwidth*10);
 
-    	//this.hiddenx=math.multiply(this.weight1,this.inlayerx);    //the x-hidden only acted on by x-input etc
-        //this.hiddeny=math.multiply(this.weight1,this.inlayery);
+    	
         this.outlayer.set([0],math.sum(math.dotMultiply(this.weight1,this.inlayerx)));
         this.outlayer.set([1],math.sum(math.dotMultiply(this.weight1,this.inlayery)));
 

@@ -95,6 +95,8 @@ function startGame() {
     new neural_component(10,10,"blue",300,300,0,0),
     new neural_component(10,10,"blue",300,300,0,0)];
 
+    gradientWorker= new gradientFunction(); //For calculating gradients
+
     for (var i = bluearmy.length - 1; i >= 0; i--) {
         bluearmy[i].randomize();
         bluearmy[i].randomize();
@@ -241,9 +243,14 @@ function UpdateGameArea(){
         break;
         }
     }
-    if(caught>0){
-            
+    if(caught>0 || n>100){ //Either caught or we have waited too long
         
+        
+        if(step>0.00001){
+            step=step*0.99;
+        }else{
+            step=step*0.999;
+        }
             
             
         penaltymean=0;
@@ -266,116 +273,51 @@ function UpdateGameArea(){
 
         
            
-
-            for (var i=bluearmy.length -1; i>=0; i--){  //NB, not counting nr 0
-
-                if(n>30){
-                
-
-                if (bluearmy[i].penalty<penaltymean) {
-                    pointsarray.set([i],pointsarray.get([i])+1);
-                    
-                }else if(bluearmy[i].penalty>penaltymean){
-                    pointsarray.set([i],pointsarray.get([i])-1);
-                    
-                }
-                if (pointsarray.get([i])<-5) {    //has been in the lower half too long
-                    bluearmy[i].weight1=math.add(math.zeros(5),bluearmy[0].weight1);    //throw away this mutation
-                         
-                    console.log(" nr "+i+" has died out");
-                    pointsarray.set([i],0);
-                    bluearmy[i].randomize();  //randomize
-                }
-
-                    if(i!=0){
-
-                        bluearmy[i].x=bluearmy[0].x;            //set back to nr 0
-                        bluearmy[i].y=bluearmy[0].y;
-                        bluearmy[i].vx=bluearmy[0].vx*0.99;
-                        bluearmy[i].vy=bluearmy[0].vy*0.99;
-                        console.log("updated");
-                    }
-
-                }else if(i!=0){ 
-                        //In case it was caught in less than 20 steps, only reset
-                    bluearmy[i].x=bluearmy[0].x;            //set back to nr 0
-                    bluearmy[i].y=bluearmy[0].y;
-                    bluearmy[i].vx=bluearmy[0].vx*0.99;
-                    bluearmy[i].vy=bluearmy[0].vy*0.99;
-
-
-                
-                }
-                
+        if(n>30){ //Store parameters and penalties, unless it was caught in under 30 moves
+            if(gradientWorker.params.length>100){
+                gradientWorker.params=[];
+                gradientWorker.loss=[];
             }
-            
-            
+            for (var i=bluearmy.length -1; i>=0; i--){
+                gradientWorker.params.push( bluearmy[i].weight1); 
+                gradientWorker.loss.push(bluearmy[i].penalty/penaltymean);
+                
 
-            pointmax=math.max(pointsarray);     //max score. NB several might have this one
-
-            for (var i = 0; i < bluearmy.length; i++) {     //start from 0 and count up
-                if(pointsarray.get([i])==pointmax){
-                    if(i==0){
-                        pointsarray.set([0],pointsarray.get([0])-1);    //set back one
-                        
-                        break;  //then the 0'th already is ahead
-                    }
-                    bluearmy[0].weight1=bluearmy[i].weight1;       //change to this one.
-                    bluearmy[i].randomize();    //randomize this one;
-                    pointsarray.set([i],pointsarray.get([i])-5);
-                    break;
-
-                    
-                }
             }
 
+            gradientWorker.findGradient(bluearmy[0].weight1,bluearmy[0].penalty/penaltymean);
+            //Now gradientWorker.gradient has been updated 
+            for (var i = 0; i< bluearmy[0].weight1.length; i++){
+                bluearmy[0].weight1.set([i], bluearmy[0].weight1.get([i])+gradientWorker.gradient.get([i])*step);
+                //Updating weights of number 0
+
+            }
+
+            for(var i=1; i<bluearmy.length; i++){ //Change all others to match number zero and randomize
+                bluearmy[i].weight1=bluearmy[0].weight1;
+                bluearmy[i].randomize();
+
+            }
+            
+
+        }
+            
+
+
+        for(var i=bluearmy.length -1; i>0; i--){ //Reset all back to number 0
+            bluearmy[i].x=bluearmy[0].x;            
+            bluearmy[i].y=bluearmy[0].y;
+            bluearmy[i].vx=bluearmy[0].vx;
+            bluearmy[i].vy=bluearmy[0].vy;
+        }
         n=0;
-       
-        
-
-        
-
-        
-
-
+        setWeightstring();
     }
     
 
 
     n+=1;
 
-    if(n>100){
-        n=0;
-        if (step>0.000001){
-            step=step*0.99; //Decrease step
-        }else{
-            step=step*0.999; //Decrease slower
-        }
-        dmin=(bluearmy[0].x-redblock.x)**2+(bluearmy[0].y-redblock.y)**2;
-        dindex=0;
-         for (var i=bluearmy.length -1; i>0; i--){
-            di=(bluearmy[i].x-redblock.x)**2+(bluearmy[i].y-redblock.y)**2
-            if (di<dmin){
-                dmin=di;
-                dindex=i;
-            
-            }
-
-
-         }
-         for (var i=bluearmy.length -1; i>=0; i--){
-            bluearmy[i].weight1=bluearmy[dindex].weight1;
-
-            bluearmy[i].x=bluearmy[0].x;            //set back to nr 0
-            bluearmy[i].y=bluearmy[0].y;
-            bluearmy[i].vx=bluearmy[0].vx;
-            bluearmy[i].vy=bluearmy[0].vy;
-
-            bluearmy[i].randomize();
-            setWeightstring();
-        }
-
-    }
 
     
 
@@ -383,7 +325,7 @@ function UpdateGameArea(){
 
 
 function setWeightstring(){
-    weightstring="weights: ";
+    weightstring="Weights: ";
     weightarray=["Own position: ","Own velocity: ","Red position: ","Red velocity: ", "Green position: "];
     for (var i =0; i< 5;  i++) {
         weightstring = weightstring + "<br>"+weightarray[i]+math.floor((bluearmy[0].weight1.get([i])*1000000));
